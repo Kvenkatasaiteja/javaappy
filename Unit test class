@@ -1,0 +1,53 @@
+package com.ticket;
+
+import com.ticket.controller.EventController;
+import com.ticket.model.Event;
+import com.ticket.repository.EventRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+public class EventControllerTest {
+    
+    @Mock
+    private EventRepository eventRepository;
+    
+    @InjectMocks
+    private EventController eventController;
+    
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+    
+    @Test
+    void testCreateEvent() {
+        Event event = new Event("Test Concert", "Amazing show", LocalDateTime.now().plusDays(7), 100);
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        
+        ResponseEntity<Event> response = eventController.createEvent(event);
+        
+        assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals("Test Concert", response.getBody().getName());
+    }
+    
+    @Test
+    void testGetEventByIdNotFound() {
+        when(eventRepository.findById(99L)).thenReturn(Optional.empty());
+        
+        ResponseEntity<Event> response = eventController.getEventById(99L);
+        
+        assertEquals(404, response.getStatusCodeValue());
+    }
+}
